@@ -3,6 +3,8 @@ import { Inter, Noto_Sans_SC, Noto_Serif_SC } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { I18nProvider } from "@/lib/i18n/i18n-context";
+import { SettingsProvider } from "@/lib/settings/settings-context";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const inter = Inter({
     subsets: ["latin"],
@@ -53,7 +55,11 @@ export default function RootLayout({
                     disableTransitionOnChange={false}
                 >
                     <I18nProvider>
-                        {children}
+                        <SettingsProvider>
+                            <ErrorBoundary>
+                                {children}
+                            </ErrorBoundary>
+                        </SettingsProvider>
                     </I18nProvider>
                 </ThemeProvider>
             </body>

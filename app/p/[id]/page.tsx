@@ -12,7 +12,7 @@ interface PageProps {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-    const post = getPost(params.id);
+    const post = await getPost(params.id);
 
     if (!post) {
         return {
@@ -51,8 +51,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
 }
 
-export default function PostPage({ params }: PageProps) {
-    const post = getPost(params.id);
+export default async function PostPage({ params }: PageProps) {
+    const post = await getPost(params.id);
 
     if (!post) {
         notFound();

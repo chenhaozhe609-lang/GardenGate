@@ -9,12 +9,14 @@ import { ShareButton } from "@/components/ShareButton";
 import { useState, useEffect } from "react";
 import { analyzeText } from "@/lib/layout-engine/detector";
 import { useI18n } from "@/lib/i18n/i18n-context";
+import { useSettings } from "@/lib/settings/settings-context";
 import { savePost, generatePostId } from "@/lib/post-storage";
 import type { AspectRatio } from "@/lib/safe-area-calculator";
 import type { Post } from "@/types/post";
 
 export default function HomePage() {
     const { t } = useI18n();
+    const { settings } = useSettings();
     const [text, setText] = useState("");
     const [layoutInfo, setLayoutInfo] = useState<ReturnType<typeof analyzeText> | null>(null);
     const [aspectRatio, setAspectRatio] = useState<AspectRatio>('3:4');
@@ -45,9 +47,9 @@ export default function HomePage() {
             mode: layoutInfo?.mode || 'bold-insight',
             aspectRatio,
             createdAt: Date.now(),
-            handle: '@GardenGate',
-            brandType: 'domain',
-            customDomain: 'gardengate.app',
+            handle: settings.handle,
+            brandType: settings.brandType,
+            customDomain: settings.customDomain,
         };
 
         savePost(post);
@@ -141,7 +143,7 @@ export default function HomePage() {
                                         <ExportButton
                                             targetElementId="preview-canvas"
                                             filename={`garden-gate-${aspectRatio.replace(':', 'x')}-${Date.now()}.png`}
-                                            scale={2}
+                                            scale={settings.exportScale}
                                             disabled={!text}
                                         />
                                     )}
@@ -170,9 +172,9 @@ export default function HomePage() {
                                                 text={text}
                                                 mode={layoutInfo?.mode || 'bold-insight'}
                                                 aspectRatio={aspectRatio}
-                                                handle="@GardenGate"
-                                                brandType="domain"
-                                                customDomain="gardengate.app"
+                                                handle={settings.handle}
+                                                brandType={settings.brandType}
+                                                customDomain={settings.customDomain}
                                             />
                                         </div>
                                     </div>
