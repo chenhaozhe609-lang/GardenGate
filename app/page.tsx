@@ -1,58 +1,136 @@
+"use client";
+
 import { Header } from "@/components/Header";
+import { TextEditor } from "@/components/TextEditor";
+import { TemplateRenderer } from "@/components/templates/TemplateRenderer";
+import { useState, useEffect } from "react";
+import { detectLayoutMode, analyzeText } from "@/lib/layout-engine/detector";
+import { useI18n } from "@/lib/i18n/i18n-context";
 
 export default function HomePage() {
+    const { t } = useI18n();
+    const [text, setText] = useState("");
+    const [layoutInfo, setLayoutInfo] = useState<ReturnType<typeof analyzeText> | null>(null);
+
+    // Analyze text when it changes
+    useEffect(() => {
+        if (text) {
+            const info = analyzeText(text);
+            setLayoutInfo(info);
+        } else {
+            setLayoutInfo(null);
+        }
+    }, [text]);
+
     return (
         <div className="min-h-screen bg-white dark:bg-deepNavy">
             <Header />
             <main className="pt-24 pb-12 px-4">
                 <div className="max-w-7xl mx-auto">
-                    <div className="text-center mb-12">
-                        <h2 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">
-                            Phase 1: Core UI Framework ✓
-                        </h2>
-                        <p className="text-xl text-gray-600 dark:text-gray-400">
-                            Internationalization and Theme System Active
-                        </p>
+                    <div className="grid lg:grid-cols-2 gap-8">
+                        {/* Left Column: Editor */}
+                        <div>
+                            <div className="text-center mb-6">
+                                <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">
+                                    {t('title')}
+                                </h2>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    {t('tagline')}
+                                </p>
+                            </div>
+
+                            {/* Editor */}
+                            <div className="mb-6">
+                                <TextEditor
+                                    value={text}
+                                    onChange={setText}
+                                    enableClipboardSniffer={true}
+                                />
+                            </div>
+
+                            {/* Layout detection info */}
+                            {layoutInfo && (
+                                <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <div className="w-2 h-2 rounded-full bg-neonGreen animate-pulse"></div>
+                                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                                            Layout Detection Active
+                                        </h3>
+                                    </div>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                                        <div>
+                                            <span className="text-gray-500 dark:text-gray-400">Mode:</span>
+                                            <div className="font-semibold text-gray-900 dark:text-white mt-1">
+                                                {layoutInfo.mode === 'bold-insight' && t('boldInsight')}
+                                                {layoutInfo.mode === 'cheat-sheet' && t('cheatSheet')}
+                                                {layoutInfo.mode === 'zen-writer' && t('zenWriter')}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span className="text-gray-500 dark:text-gray-400">Characters:</span>
+                                            <div className="font-mono font-semibold text-neonBlue mt-1">
+                                                {layoutInfo.charCount}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span className="text-gray-500 dark:text-gray-400">Lines:</span>
+                                            <div className="font-mono font-semibold text-neonPink mt-1">
+                                                {layoutInfo.lineCount}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span className="text-gray-500 dark:text-gray-400">Type:</span>
+                                            <div className="font-semibold text-gray-900 dark:text-white mt-1">
+                                                {layoutInfo.isList && '📝 List'}
+                                                {layoutInfo.isShort && '💡 Short'}
+                                                {layoutInfo.isLong && '📄 Long'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Right Column: Preview */}
+                        <div>
+                            <div className="sticky top-24">
+                                <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white flex items-center gap-2">
+                                    <svg className="w-5 h-5 text-neonPink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                    Live Preview
+                                </h3>
+
+                                {text ? (
+                                    <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-200 dark:border-gray-800">
+                                        <TemplateRenderer
+                                            text={text}
+                                            mode={layoutInfo?.mode || 'bold-insight'}
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700 p-12 text-center">
+                                        <svg className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        <p className="text-gray-400 dark:text-gray-600">
+                                            Preview will appear here
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Feature showcase */}
-                    <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-                        <div className="p-6 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-                            <div className="w-12 h-12 bg-neonGreen/10 rounded-lg flex items-center justify-center mb-4">
-                                <svg className="w-6 h-6 text-neonGreen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
-                                </svg>
-                            </div>
-                            <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">中英文切换</h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                                支持中文和English界面切换
+                    {/* Empty state - only show when no editor focus */}
+                    {!text && (
+                        <div className="text-center py-8 text-gray-400 dark:text-gray-600 max-w-2xl mx-auto">
+                            <p className="text-sm">
+                                💡 Try pasting some text to see the smart layout engine in action
                             </p>
                         </div>
-
-                        <div className="p-6 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-                            <div className="w-12 h-12 bg-neonBlue/10 rounded-lg flex items-center justify-center mb-4">
-                                <svg className="w-6 h-6 text-neonBlue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                                </svg>
-                            </div>
-                            <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">暗黑模式</h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                                浅色/暗黑/跟随系统
-                            </p>
-                        </div>
-
-                        <div className="p-6 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-                            <div className="w-12 h-12 bg-neonPink/10 rounded-lg flex items-center justify-center mb-4">
-                                <svg className="w-6 h-6 text-neonPink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                </svg>
-                            </div>
-                            <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">响应式设计</h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                                移动端优先，触控友好
-                            </p>
-                        </div>
-                    </div>
+                    )}
                 </div>
             </main>
         </div>
